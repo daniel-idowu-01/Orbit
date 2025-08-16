@@ -7,10 +7,10 @@ export class Comment extends Document {
   content: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  author: Types.ObjectId;
+  authorId: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'Task', required: true })
-  task: Types.ObjectId;
+  taskId: Types.ObjectId;
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);
