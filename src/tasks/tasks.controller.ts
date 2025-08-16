@@ -11,6 +11,7 @@ import {
 import { TasksService } from './tasks.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { GetUser } from '../common/decorators/get-user.decorator';
+import { CreateTaskDto } from './schemas/create-task.dto';
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
@@ -20,11 +21,15 @@ export class TasksController {
   @Post(':projectId')
   createTask(
     @Param('projectId') projectId: string,
-    @Body('title') title: string,
-    @Body('description') description: string,
+    @Body() createTaskDto: CreateTaskDto,
     @GetUser('_id') userId: string,
   ) {
-    return this.tasksService.createTask(title, description, projectId, userId);
+    return this.tasksService.createTask(
+      createTaskDto.title,
+      createTaskDto?.description || 'No description',
+      projectId,
+      userId,
+    );
   }
 
   @Patch(':taskId/assign')
@@ -51,5 +56,10 @@ export class TasksController {
     @GetUser('_id') userId: string,
   ) {
     return this.tasksService.getTasksByProject(projectId, userId);
+  }
+
+  @Get('dashboard/stats')
+  async getDashboardStats(@GetUser('_id') userId: string) {
+    return this.tasksService.getUserStats(userId);
   }
 }

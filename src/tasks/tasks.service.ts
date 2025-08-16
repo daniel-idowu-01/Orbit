@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Task } from './schemas/task.schema';
+import { Task, TaskSchema } from './schemas/task.schema';
 import { Project } from '../projects/schemas/project.schema';
 import { Team } from '../teams/schemas/team.schema';
 
@@ -97,9 +97,27 @@ export class TasksService {
     const team = await this.teamModel.findById(project.teamId);
     if (!team) throw new NotFoundException('Team not found');
 
-    const member = team.members.find((m) => m.userId.toString() === userId.toString());
+    const member = team.members.find(
+      (m) => m.userId.toString() === userId.toString(),
+    );
     if (!member) throw new ForbiddenException('You are not part of this team');
 
     return this.taskModel.find({ projectId: new Types.ObjectId(projectId) });
+  }
+
+  async getUserStats(userId: string) {
+    const tasks = await this.taskModel.find({
+      assigneeId: new Types.ObjectId(userId),
+    });
+
+    return {
+      total: tasks.length,
+      completed: tasks.filter((t) => t.status === 'DONE').length,
+      inProgress: tasks.filter((t) => t.status === 'IN_PROGRESS').length,
+      overdue: tasks.filter(
+        (t) =>
+          t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'DONE',
+      ).length,
+    };
   }
 }

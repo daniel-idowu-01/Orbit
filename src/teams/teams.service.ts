@@ -16,7 +16,7 @@ export class TeamsService {
     return this.teamModel.create({
       name,
       owner: new Types.ObjectId(ownerId),
-      members: [{ user: ownerId, role: 'admin' }],
+      members: [{ user: new Types.ObjectId(ownerId), role: 'admin' }],
     });
   }
 

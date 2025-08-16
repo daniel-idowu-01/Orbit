@@ -20,6 +20,9 @@ export class Task extends Document {
 
   @Prop({ type: Types.ObjectId, ref: 'Project' })
   projectId: Types.ObjectId;
+
+  @Prop({ enum: ['LOW', 'MEDIUM', 'HIGH'], default: 'MEDIUM' })
+  priority: string;
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);

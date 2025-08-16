@@ -37,7 +37,7 @@ export class ProjectsService {
 
     return this.projectModel.create({
       name,
-      team: new Types.ObjectId(teamId),
+      teamId: new Types.ObjectId(teamId),
       createdBy: new Types.ObjectId(userId),
     });
   }
