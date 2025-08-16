@@ -14,6 +14,9 @@ export class Project extends Document {
 
   @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
   members: Types.ObjectId[];
+
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  createdBy: Types.ObjectId;
 }
 
 export const ProjectSchema = SchemaFactory.createForClass(Project);
