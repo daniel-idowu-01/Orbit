@@ -12,7 +12,8 @@ export class Team extends Document {
   @Prop({
     type: [
       {
-        user: { type: Types.ObjectId, ref: 'User' },
+        _id: false,
+        userId: { type: Types.ObjectId, ref: 'User' },
         role: {
           type: String,
           enum: ['admin', 'manager', 'member'],
@@ -23,7 +24,7 @@ export class Team extends Document {
     default: [],
   })
   members: {
-    user: Types.ObjectId;
+    userId: Types.ObjectId;
     role: 'admin' | 'manager' | 'member';
   }[];
 }
