@@ -9,7 +9,7 @@ import {
   Param,
   Get,
   Patch,
-  Delete
+  Delete,
 } from '@nestjs/common';
 
 @Controller('teams')
@@ -34,6 +34,14 @@ export class TeamsController {
   @Get()
   getMyTeams(@GetUser('_id') userId: string) {
     return this.teamsService.getTeamsForUser(userId);
+  }
+
+  @Get(':teamId/members')
+  getTeamMembers(
+    @Param('teamId') teamId: string,
+    @GetUser('_id') userId: string,
+  ) {
+    return this.teamsService.getTeamMembers(teamId, userId);
   }
 
   @Patch(':teamId/members/:memberId/role')

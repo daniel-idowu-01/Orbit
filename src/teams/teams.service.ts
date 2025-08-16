@@ -53,6 +53,33 @@ export class TeamsService {
       .populate('members.userId', 'name email');
   }
 
+  async getTeamMembers(teamId: string, userId: string) {
+    const team = await this.teamModel
+      .findById(teamId)
+      .populate('members.userId', 'name email')
+      .populate('ownerId', 'name email');
+
+    if (!team) {
+      throw new NotFoundException('Team not found');
+    }
+
+    const isMember = team.members.some(
+      (m) => m.userId.toString() === userId.toString(),
+    );
+
+    if (!isMember) {
+      throw new ForbiddenException('You are not a member of this team');
+    }
+
+    return {
+      teamId: team._id,
+      teamName: team.name,
+      owner: team.ownerId,
+      members: team.members,
+      memberCount: team.members.length,
+    };
+  }
+
   async updateMemberRole(
     teamId: string,
     memberId: string,
@@ -114,7 +141,7 @@ export class TeamsService {
     const memberIndex = team.members.findIndex(
       (m) => m.userId.toString() === memberId.toString(),
     );
-    
+
     if (memberIndex === -1) {
       throw new NotFoundException('Member not found in team');
     }

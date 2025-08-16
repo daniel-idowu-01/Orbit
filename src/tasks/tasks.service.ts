@@ -9,6 +9,14 @@ import { Task, TaskSchema } from './schemas/task.schema';
 import { Project } from '../projects/schemas/project.schema';
 import { Team } from '../teams/schemas/team.schema';
 
+interface TaskFilter {
+  status?: string;
+  assignee?: string;
+  priority?: string;
+  dueDateFrom?: string;
+  dueDateTo?: string;
+}
+
 @Injectable()
 export class TasksService {
   constructor(
@@ -110,14 +118,78 @@ export class TasksService {
       assigneeId: new Types.ObjectId(userId),
     });
 
+    const now = new Date();
+    const overdueTasks = tasks.filter(
+      (task) =>
+        task.dueDate && new Date(task.dueDate) < now && task.status !== 'DONE',
+    );
+
     return {
       total: tasks.length,
       completed: tasks.filter((t) => t.status === 'DONE').length,
       inProgress: tasks.filter((t) => t.status === 'IN_PROGRESS').length,
-      overdue: tasks.filter(
-        (t) =>
-          t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'DONE',
-      ).length,
+      todo: tasks.filter((t) => t.status === 'TODO').length,
+      overdue: overdueTasks.length,
+      completionRate:
+        tasks.length > 0
+          ? Math.round(
+              (tasks.filter((t) => t.status === 'DONE').length / tasks.length) *
+                100,
+            )
+          : 0,
     };
+  }
+
+  async getFilteredTasks(
+    projectId: string,
+    filters: TaskFilter,
+    userId: string,
+  ) {
+    const project = await this.projectModel.findById(projectId);
+    if (!project) throw new NotFoundException('Project not found');
+
+    const team = await this.teamModel.findById(project.teamId);
+    if (!team) throw new NotFoundException('Team not found');
+
+    const member = team.members.find(
+      (m) => m.userId.toString() === userId.toString(),
+    );
+    if (!member) throw new ForbiddenException('You are not part of this team');
+
+    const filterQuery: any = { projectId: new Types.ObjectId(projectId) };
+
+    if (filters.status) {
+      const validStatuses = ['TODO', 'IN_PROGRESS', 'DONE'];
+      if (validStatuses.includes(filters.status)) {
+        filterQuery.status = filters.status;
+      }
+    }
+
+    if (filters.assignee) {
+      filterQuery.assigneeId = new Types.ObjectId(filters.assignee);
+    }
+
+    if (filters.priority) {
+      const validPriorities = ['LOW', 'MEDIUM', 'HIGH'];
+      if (validPriorities.includes(filters.priority)) {
+        filterQuery.priority = filters.priority;
+      }
+    }
+
+    if (filters.dueDateFrom || filters.dueDateTo) {
+      filterQuery.dueDate = {};
+      if (filters.dueDateFrom) {
+        filterQuery.dueDate.$gte = new Date(filters.dueDateFrom);
+      }
+      if (filters.dueDateTo) {
+        filterQuery.dueDate.$lte = new Date(filters.dueDateTo);
+      }
+    }
+
+    return this.taskModel
+      .find(filterQuery)
+      .populate('assigneeId', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
   }
 }

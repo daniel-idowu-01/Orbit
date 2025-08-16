@@ -1,4 +1,3 @@
-// tasks/tasks.controller.ts
 import {
   Controller,
   Post,
@@ -7,6 +6,7 @@ import {
   Get,
   Patch,
   UseGuards,
+  Query
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -56,6 +56,20 @@ export class TasksController {
     @GetUser('_id') userId: string,
   ) {
     return this.tasksService.getTasksByProject(projectId, userId);
+  }
+
+  @Get(':projectId/filter')
+  getFilteredTasks(
+    @Param('projectId') projectId: string,
+    @GetUser('_id') userId: string,
+    @Query('status') status?: string,
+    @Query('assignee') assignee?: string,
+    @Query('priority') priority?: string,
+    @Query('dueDateFrom') dueDateFrom?: string,
+    @Query('dueDateTo') dueDateTo?: string,
+  ) {
+    const filters = { status, assignee, priority, dueDateFrom, dueDateTo };
+    return this.tasksService.getFilteredTasks(projectId, filters, userId);
   }
 
   @Get('dashboard/stats')
