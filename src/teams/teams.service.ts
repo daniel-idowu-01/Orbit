@@ -48,7 +48,7 @@ export class TeamsService {
 
   async getTeamsForUser(userId: string) {
     return this.teamModel
-      .find({ 'members.user': userId })
-      .populate('members.user', 'name email');
+      .find({ 'members.userId': userId.toString() })
+      .populate('members.userId', 'name email');
   }
 }
