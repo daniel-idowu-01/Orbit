@@ -16,10 +16,10 @@ export class Task extends Document {
   dueDate: Date;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
-  assignee: Types.ObjectId;
+  assigneeId: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'Project' })
-  project: Types.ObjectId;
+  projectId: Types.ObjectId;
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);

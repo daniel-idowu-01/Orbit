@@ -10,7 +10,7 @@ export class Project extends Document {
   description: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Team', required: true })
-  team: Types.ObjectId;
+  teamId: Types.ObjectId;
 
   @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
   members: Types.ObjectId[];
