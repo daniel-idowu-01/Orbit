@@ -16,8 +16,8 @@ export class UserController {
     return user;
   }
 
-  // @Get('search/:query')
-  // async searchUsers(@Param('query') query: string) {
-  //   return this.userService.searchUsers(query);
-  // }
+  @Get('search/:query')
+  async searchUsers(@Param('query') query: string) {
+    return this.userService.searchUsers(query);
+  }
 }

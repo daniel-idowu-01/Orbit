@@ -38,4 +38,17 @@ export class UserService {
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
+
+  async searchUsers(query: string): Promise<User[]> {
+    return this.userModel
+      .find({
+        $or: [
+          { name: { $regex: query, $options: 'i' } },
+          { email: { $regex: query, $options: 'i' } },
+        ],
+      })
+      .select('name email')
+      .limit(10)
+      .exec();
+  }
 }

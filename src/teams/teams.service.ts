@@ -6,6 +6,7 @@ import {
   ConflictException,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 
 @Injectable()
@@ -50,5 +51,88 @@ export class TeamsService {
     return this.teamModel
       .find({ 'members.userId': userId.toString() })
       .populate('members.userId', 'name email');
+  }
+
+  async updateMemberRole(
+    teamId: string,
+    memberId: string,
+    role: string,
+    adminId: string,
+  ) {
+    const validRoles = ['admin', 'manager', 'member'];
+    if (!validRoles.includes(role)) {
+      throw new BadRequestException(
+        'Invalid role. Must be admin, manager, or member',
+      );
+    }
+
+    const team = await this.teamModel.findById(teamId);
+    if (!team) {
+      throw new NotFoundException('Team not found');
+    }
+
+    const adminMember = team.members.find(
+      (m) => m.userId.toString() === adminId.toString(),
+    );
+    if (!adminMember || adminMember.role !== 'admin') {
+      throw new ForbiddenException('Only admins can update member roles');
+    }
+
+    const memberToUpdate = team.members.find(
+      (m) => m.userId.toString() === memberId.toString(),
+    );
+    if (!memberToUpdate) {
+      throw new NotFoundException('Member not found in team');
+    }
+
+    if (adminId === memberId && adminMember.role === 'admin') {
+      const adminCount = team.members.filter((m) => m.role === 'admin').length;
+      if (adminCount === 1 && role !== 'admin') {
+        throw new ForbiddenException(
+          'Cannot remove the last admin from the team',
+        );
+      }
+    }
+
+    memberToUpdate.role = role as 'admin' | 'manager' | 'member';
+    return team.save();
+  }
+
+  async removeMember(teamId: string, memberId: string, adminId: string) {
+    const team = await this.teamModel.findById(teamId);
+    if (!team) {
+      throw new NotFoundException('Team not found');
+    }
+
+    const adminMember = team.members.find(
+      (m) => m.userId.toString() === adminId.toString(),
+    );
+    if (!adminMember || adminMember.role !== 'admin') {
+      throw new ForbiddenException('Only admins can remove members');
+    }
+
+    const memberIndex = team.members.findIndex(
+      (m) => m.userId.toString() === memberId.toString(),
+    );
+    
+    if (memberIndex === -1) {
+      throw new NotFoundException('Member not found in team');
+    }
+
+    if (team.ownerId.toString() === memberId.toString()) {
+      throw new ForbiddenException('Cannot remove the team owner');
+    }
+
+    if (adminId === memberId) {
+      const adminCount = team.members.filter((m) => m.role === 'admin').length;
+      if (adminCount === 1) {
+        throw new ForbiddenException(
+          'Cannot remove the last admin from the team',
+        );
+      }
+    }
+
+    team.members.splice(memberIndex, 1);
+    return team.save();
   }
 }

@@ -7,7 +7,7 @@ export class Team extends Document {
   name: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  owner: Types.ObjectId;
+  ownerId: Types.ObjectId;
 
   @Prop({
     type: [
