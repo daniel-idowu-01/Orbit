@@ -47,6 +47,14 @@ export class TeamsService {
     return team.save();
   }
 
+  async findById(teamId: string) {
+    const team = await this.teamModel.findById(teamId);
+    if (!team) {
+      throw new NotFoundException('Team not found');
+    }
+    return team;
+  }
+
   async getTeamsForUser(userId: string) {
     return this.teamModel
       .find({ 'members.userId': userId.toString() })
